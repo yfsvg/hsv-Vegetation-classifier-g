@@ -12,10 +12,10 @@ POOR_REF_PATH = "referenceImages/poorRef.png"
 
 # 12 buckets, each containing a different grouping of colors, with steps of 14.
 # these are all maximum HSV values, so for example "0" represents 0-14 range. "120" is 120-134.
-HUE_Buckets = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165];
+HUE_Buckets = [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168];
 
 # 4 categorizes for saturation. each step is 24 this time
-SAT_Buckets = [0, 25, 50, 75]
+SAT_Buckets = [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5]
 
 def analyzeImage(imagePath: str):
     img_bgr = cv2.imread(imagePath) # OpenCV loads as BGR, not RGB
@@ -34,10 +34,14 @@ def analyzeImage(imagePath: str):
     # returnArray[2][3] woudl be hue from 45-59, and saturation from 50-74.
     # each row is saturation. Each column is heu
     returnArray = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 
     # Determine which hue/sats bucket each pixel belongs to.
@@ -77,10 +81,14 @@ def compareImageDistrs(array1, array2):
 
 def visualizeImageDistrDifferences(array1, array2):
     returnArray = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 
     for i, row in enumerate(array1):
@@ -92,9 +100,6 @@ def visualizeImageDistrDifferences(array1, array2):
 
 
 inputArray = analyzeImage(IMAGE_PATH)
-
-for row in inputArray:
-    print(row)
 
 goodArray = analyzeImage(GOOD_REF_PATH)
 mediocreArray = analyzeImage(MID_REF_PATH)
@@ -111,3 +116,18 @@ elif closest == mediocreDistance:
     print("Closest to mediocre")
 else:
     print("Closest to poor")
+
+def getResults():
+    inputArray = analyzeImage(IMAGE_PATH)
+    goodArray = analyzeImage(GOOD_REF_PATH)
+    mediocreArray = analyzeImage(MID_REF_PATH)
+    poorArray = analyzeImage(POOR_REF_PATH)
+    return inputArray, goodArray, mediocreArray, poorArray
+
+# Keep your existing print/comparison logic under this guard
+# so it only runs when you execute THIS file directly, not when imported
+if __name__ == "__main__":
+    inputArray, goodArray, mediocreArray, poorArray = getResults()
+    for row in inputArray:
+        print(row)
+    # ... rest of your comparison code
