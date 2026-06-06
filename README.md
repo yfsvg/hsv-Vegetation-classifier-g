@@ -1,0 +1,1 @@
+The purpose of this paper is to determine whether or not it is possible to utilize an algorithm pure colored images to accurately determine/assess the quality of vegetation in an area, and determine what advantages it has over a YOLOv8 machine learning algorithm trained on data to categorize such images. 
