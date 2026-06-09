@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Image that is to be analyzed
-IMAGE_PATH = "bare.png"
+IMAGE_PATH = "bimodalTest2.png"
 
 # Ref images
 GOOD_REF_PATH = "referenceImages/goodRef.png"
@@ -70,14 +70,39 @@ def analyzeImage(imagePath: str):
     return returnArray
 
 
+# now using earth movers distance
 def compareImageDistrs(array1, array2):
-    returnDistance = 0;
+    # build signatures for opencv EMD which expects row of [weight, y, x]
+    sig1 = []
+    sig2 = []
 
+    # Flatten the 2D distribution into a list for opencv EMD
     for i, row in enumerate(array1):
-        for j, col in enumerate(row):
-            returnDistance += abs(array1[i][j] - array2[i][j])
+        for j, val in enumerate(row):
+            if val and val > 0.0:
+                sig1.append([float(val), float(i), float(j)])
 
-    return returnDistance
+    for i, row in enumerate(array2):
+        for j, val in enumerate(row):
+            if val and val > 0.0:
+                sig2.append([float(val), float(i), float(j)])
+
+    # If both signatures are empty, use absolute difference method instead to still return output
+    if len(sig1) == 0 or len(sig2) == 0:
+        print("Signatures empty, using absolute dist. for this one")
+        returnDistance = 0
+        for i, row in enumerate(array1):
+            for j, col in enumerate(row):
+                returnDistance += abs(array1[i][j] - array2[i][j])
+        return returnDistance
+    
+    sig1 = np.array(sig1, dtype=np.float32)
+    sig2 = np.array(sig2, dtype=np.float32)
+
+    # pick out emd (dist)
+    # use L2 distance for the ground distance  between bin coordinates
+    emd_result = cv2.EMD(sig1, sig2, cv2.DIST_L2)
+    return emd_result[0]
 
 def visualizeImageDistrDifferences(array1, array2):
     returnArray = [

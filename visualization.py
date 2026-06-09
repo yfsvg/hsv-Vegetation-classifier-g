@@ -11,8 +11,8 @@ labels = ["Input", "Good Ref", "Mediocre Ref", "Poor Ref"]
 for ax, arr, label in zip(axes, [inputArray, goodArray, mediocreArray, poorArray], labels):
     ax.imshow(arr, cmap="hot", aspect="auto")
     ax.set_title(label)
-    ax.set_xlabel("Hue bucket")
-    ax.set_ylabel("Sat bucket")
+    ax.set_xlabel("Hues")
+    ax.set_ylabel("Sat.s")
 
 plt.tight_layout()
 plt.show()
