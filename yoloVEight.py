@@ -12,12 +12,9 @@ def predict(image_path: str, model_path: str):
     results = model.predict(source=image_path, verbose=False)
 
     for result in results:
-        # 
         probs = result.probs
-        # {0: 'bad', 1: 'good', 2: 'mediocre'}
         class_names = result.names
 
-        # index of top prediction
         top1_idx = probs.top1      
         # receive ocnfidence and label      
         top1_conf = probs.top1conf.item()
@@ -25,6 +22,7 @@ def predict(image_path: str, model_path: str):
 
         print(f"Overall prediction: {top1_name.upper()}")
         print(f"Confidence / confusion: {top1_conf:.1%}")
+        # current busy working on this
 
         # Show all class probabilities ranked in confidence
         print("TOTAL confidences for each class - ")
@@ -40,7 +38,8 @@ def predict(image_path: str, model_path: str):
 
 if __name__ == "__main__":
     # Allow overriding paths via command line args
-    img   = sys.argv[1] if len(sys.argv) > 1 else IMAGE_PATH
+
+    img = sys.argv[1] if len(sys.argv) > 1 else IMAGE_PATH
     model = sys.argv[2] if len(sys.argv) > 2 else MODEL_PATH
 
     predict(img, model)

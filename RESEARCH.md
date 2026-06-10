@@ -42,3 +42,8 @@ https://www.mdpi.com/2313-433X/12/1/9
 **Greenness identification based on HSV decision tree**
 - This paper made a threshold based decision tree that uses the HSV color space to isolate crops from backgrounds and changing weather conditions. Also directly uses color rather than infrared light, which is one of my main benefits
 - This directly aligns with my study's focus on making an algorithm that does a lot for interpretability, efficiency, and needing very little data. The authors literally criticize traditional spectral indices for failing under uneven lighting, and then state that an HSV decision tree would provide a better rule based path, and also be interpretable for why it came to a decision. Very little computations, no training overhead too. Claimed 100% accuracy.
+
+
+## Future papers to look at
+- https://ieeexplore.ieee.org/abstract/document/11264588
+- https://ieeexplore.ieee.org/abstract/document/10949266

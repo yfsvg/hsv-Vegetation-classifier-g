@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Image that is to be analyzed
-IMAGE_PATH = "bimodalTest2.png"
+IMAGE_PATH = "textureTestBad.png"
 # Image to be analyzed for the laplachian image test
 TEXTURE_GOOD_PATH = "textureTestBad2.png"
 TEXTURE_BAD_PATH = "textureTestBad.png"
@@ -21,6 +21,16 @@ HUE_Buckets = [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168];
 # 4 categorizes for saturation. each step is 24 this time
 SAT_Buckets = [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5]
 
+# takes in the 2D value array
+def gradientStrengthDetection(valueArray):
+    # RESIZE! I figured this out to be the issue. The images were at different resolutions.
+    resized_array = cv2.resize(valueArray, (500, 500), interpolation=cv2.INTER_AREA)
+    blurred = cv2.GaussianBlur(resized_array, (3, 3), 0)
+    laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
+
+    return laplacian.var()
+
+
 def analyzeImage(imagePath: str):
     img_bgr = cv2.imread(imagePath) # OpenCV loads as BGR, not RGB
     img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
@@ -32,6 +42,9 @@ def analyzeImage(imagePath: str):
     h_flat = img_hsv[:, :, 0].flatten()[valid_mask]
     s_flat = img_hsv[:, :, 1].flatten()[valid_mask]
     v_flat = img_hsv[:, :, 2].flatten()[valid_mask]
+
+    gradientStrength = gradientStrengthDetection(img_hsv[:, :, 2])
+    print(f"[{imagePath}] Gradient Strength: {gradientStrength:.4f}")
 
     # matching the style of HUE_Buckets and SAT_Buckets, use those flat arrays to input the number of pixels that fit into each bucket
     # so for example, returnArray[0][0] would be hue from 0-14 and saturation from 0-24.
@@ -73,10 +86,11 @@ def analyzeImage(imagePath: str):
     
     return returnArray
 
-# Blurs the image, and then looks at the distribution of brightness
-# NOTE: This is only for discerning between mediocre and good images in which green is the dominant color
-# check laplachian implementation below for reasoning why
-
+# Since areas with lots of vegetation are more likely to have things like trees and shrubbery
+# that create large areas of shade, we look at how "uneven" the ground is by using laplacian variance
+# In wild forests (What this algo is for), flat areas actually really aren't that great, so higher
+# variance means more healthy. 
+# NOTE: no longer in use
 def homemadeTextureAnalysis(imagePath):
     image = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
     blurred = cv2.GaussianBlur(image, (3, 3), 0)
@@ -154,26 +168,6 @@ def visualizeImageDistrDifferences(array1, array2):
 
     return returnArray
 
-# NOTE: This implementation is poor. i tested it with various good images and saw a lot of variation. 
-# This is here night now in case I need to test with it later and if i can improve it
-# My homemade application around analyzeImage func now (line 75)
-
-# Since areas with lots of vegetation are more likely to have things like trees and shrubbery
-# that create large areas of shade, we look at how "uneven" the ground is by using laplacian variance
-# In wild forests (What this algo is for), flat areas actually really aren't that great, so higher
-# variance means more healthy. 
-def textureAnalysis(image):
-    imageToAnalyze = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-    # Apply a blur to the image. 
-    # lo
-    blurred = cv2.GaussianBlur(imageToAnalyze, (3, 3), 0)
-    laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
-    variance = laplacian.var()
-    
-    return variance
-# Note that this is ONLY used to differentiate between good and mediocre, if we've already established that green is the most domiant color
-# because like we said, flat sprawls ARE not good, but the current HSV model has no way of finding that out.
-
 
 inputArray = analyzeImage(IMAGE_PATH)
 
@@ -200,15 +194,13 @@ def getResults():
     poorArray = analyzeImage(POOR_REF_PATH)
     return inputArray, goodArray, mediocreArray, poorArray
 
-goodTextureBenchmark = homemadeTextureAnalysis(GOOD_REF_PATH)
-goodTextureTest = homemadeTextureAnalysis(TEXTURE_GOOD_PATH)
-badTextureTest = homemadeTextureAnalysis(TEXTURE_BAD_PATH)
-ultimateFlatBenchmark = homemadeTextureAnalysis(ULTIMATE_FLAT)
-
-print(f"Good texture distances: {compareImageDistrs(goodTextureTest, goodTextureBenchmark)}")
-print(f"Bad texture distances: {compareImageDistrs(ultimateFlatBenchmark, goodTextureBenchmark)}")
-
 if __name__ == "__main__":
     inputArray, goodArray, mediocreArray, poorArray = getResults()
     for row in inputArray:
         print(row)
+
+
+# New plan for a proper texture analysis.
+# Keep the value as a 2D array. Blur it a TINY bit to get rid of pixel variations and only have spatial patterns.
+# run an edge detection thing to find gradient shifts, bigger gradient shifts meaning
+# Use more commonly when there is less confidence with the hue.
