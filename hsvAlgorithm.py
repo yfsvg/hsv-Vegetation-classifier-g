@@ -4,10 +4,6 @@ import numpy as np
 
 # Image that is to be analyzed
 IMAGE_PATH = "textureTestBad.png"
-# Image to be analyzed for the laplachian image test
-TEXTURE_GOOD_PATH = "textureTestBad2.png"
-TEXTURE_BAD_PATH = "textureTestBad.png"
-ULTIMATE_FLAT = "veryFlatTest.png"
 
 # Ref images
 GOOD_REF_PATH = "referenceImages/goodRef.png"
