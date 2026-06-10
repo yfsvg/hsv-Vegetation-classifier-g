@@ -9,7 +9,7 @@ IMAGE_PATH = "bare.png"
 
 def predict(image_path: str, model_path: str):
     model = YOLO(model_path)
-    results = model.predict(source=image_path, verbose=false)
+    results = model.predict(source=image_path, verbose=False)
 
     for result in results:
         # 
