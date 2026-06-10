@@ -2,16 +2,16 @@
 List of relevant papers and research that are gonna help me figure out where to start and which directions to take.
 
 ## Promising papers -
-https://www.mdpi.com/2313-433X/12/1/9  Accurate Segmentation of Vegetation in UAV Desert Imagery Using HSV-GLCM Features and SVM Classification 
-https://jurnal.umsu.ac.id:444/index.php/jcositte/article/view/26495 
+* https://www.mdpi.com/2313-433X/12/1/9  Accurate Segmentation of Vegetation in UAV Desert Imagery Using HSV-GLCM Features and SVM Classification 
+* https://jurnal.umsu.ac.id:444/index.php/jcositte/article/view/26495 
 https://www.mdpi.com/1424-8220/18/4/1253  A New Vegetation Segmentation Approach for Cropped Fields Based on Threshold Detection from Hue Histogram (Very similar)
 Differences is that they are doing segmentation rather than classification
 They use SVM on labeled data, i use very few curated reference images instead
 They don't actually use a histogram in their PROCESS that they made
-https://link.springer.com/chapter/10.1007/978-981-16-8225-4_21 HsvGvas: HSV Color Model to Recognize Greenness of Forest Land for the Estimation of Change in the Vegetation Areas
-https://bioone.org/journals/journal-of-resources-and-ecology/volume-16/issue-4/j.issn.1674-764x.2025.04.002/Identification-of-Grassland-Vegetation-Coverage-and-Height-Based-on-Vegetation/10.5814/j.issn.1674-764x.2025.04.002.full (Just in the general direction of HSV)
-https://www.sciencedirect.com/science/article/pii/S2214317315000347 Greenness identification based on HSV decision tree
-https://diglib.eg.org/server/api/core/bitstreams/f24394e8-25f0-42fe-a21c-58d8bf5107f5/content 
+* https://link.springer.com/chapter/10.1007/978-981-16-8225-4_21 HsvGvas: HSV Color Model to Recognize Greenness of Forest Land for the Estimation of Change in the Vegetation Areas
+* https://bioone.org/journals/journal-of-resources-and-ecology/volume-16/issue-4/j.issn.1674-764x.2025.04.002/Identification-of-Grassland-Vegetation-Coverage-and-Height-Based-on-Vegetation/10.5814/j.issn.1674-764x.2025.04.002.full (Just in the general direction of HSV)
+* https://www.sciencedirect.com/science/article/pii/S2214317315000347 Greenness identification based on HSV decision tree
+* https://diglib.eg.org/server/api/core/bitstreams/f24394e8-25f0-42fe-a21c-58d8bf5107f5/content 
 
 # Summaries
 **Automatic Identification of Grassland Vegetation Coverage and Height Using Visible Light Vegetation Indices**
