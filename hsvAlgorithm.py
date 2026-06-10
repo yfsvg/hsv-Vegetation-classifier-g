@@ -4,6 +4,10 @@ import numpy as np
 
 # Image that is to be analyzed
 IMAGE_PATH = "bimodalTest2.png"
+# Image to be analyzed for the laplachian image test
+TEXTURE_GOOD_PATH = "textureTestBad2.png"
+TEXTURE_BAD_PATH = "textureTestBad.png"
+ULTIMATE_FLAT = "veryFlatTest.png"
 
 # Ref images
 GOOD_REF_PATH = "referenceImages/goodRef.png"
@@ -69,38 +73,66 @@ def analyzeImage(imagePath: str):
     
     return returnArray
 
+# Blurs the image, and then looks at the distribution of brightness
+# NOTE: This is only for discerning between mediocre and good images in which green is the dominant color
+# check laplachian implementation below for reasoning why
+
+def homemadeTextureAnalysis(imagePath):
+    image = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+    blurred = cv2.GaussianBlur(image, (3, 3), 0)
+    # valueDistributionBuckets are split into 8 like [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5]
+    hist = cv2.calcHist([blurred], [0], None, [8], [0, 256])
+
+    # Normalize histogram to ensure that sum of all bins will now equal 1.0 regardless of resolution
+    total_pixels = hist.sum()
+    if total_pixels > 0:
+        hist /= total_pixels
+
+    # flatten and return
+    valueHistogram = hist.flatten().tolist()
+    return valueHistogram
 
 # now using earth movers distance
+# Adapted to be usable for 1D arrays as well
 def compareImageDistrs(array1, array2):
-    # build signatures for opencv EMD which expects row of [weight, y, x]
+    # Convert inputs to numpy arrays to easily check dimensions
+    arr1 = np.array(array1)
+    arr2 = np.array(array2)
+    
+    # Utilize absolute distances as a fall back
+    if arr1.size == 0 or arr2.size == 0:
+        print("Signatures empty. use absolute dist. for this one")
+        return float(np.sum(np.abs(arr1.flatten() - arr2.flatten())))
+
     sig1 = []
     sig2 = []
 
-    # Flatten the 2D distribution into a list for opencv EMD
-    for i, row in enumerate(array1):
-        for j, val in enumerate(row):
-            if val and val > 0.0:
-                sig1.append([float(val), float(i), float(j)])
+    # if the Input array is 1D, that must mean that it's from the texture analysis thing.
+    if arr1.ndim == 1:
+        for i, val in enumerate(arr1):
+            if val > 0.0:
+                sig1.append([float(val), float(i)])
+                
+        for i, val in enumerate(arr2):
+            if val > 0.0:
+                sig2.append([float(val), float(i)])
 
-    for i, row in enumerate(array2):
-        for j, val in enumerate(row):
-            if val and val > 0.0:
-                sig2.append([float(val), float(i), float(j)])
+    # If the input is 2D, then that means that is from analyze image with saturation and hue
+    else:
+        for i, row in enumerate(arr1):
+            for j, val in enumerate(row):
+                if val > 0.0:
+                    sig1.append([float(val), float(i), float(j)]) # Weights now as [Y, X]
+                    
+        for i, row in enumerate(arr2):
+            for j, val in enumerate(row):
+                if val > 0.0:
+                    sig2.append([float(val), float(i), float(j)])
 
-    # If both signatures are empty, use absolute difference method instead to still return output
-    if len(sig1) == 0 or len(sig2) == 0:
-        print("Signatures empty, using absolute dist. for this one")
-        returnDistance = 0
-        for i, row in enumerate(array1):
-            for j, col in enumerate(row):
-                returnDistance += abs(array1[i][j] - array2[i][j])
-        return returnDistance
-    
     sig1 = np.array(sig1, dtype=np.float32)
     sig2 = np.array(sig2, dtype=np.float32)
 
-    # pick out emd (dist)
-    # use L2 distance for the ground distance  between bin coordinates
+    # Pick out earth mover distance from OpenCV's response
     emd_result = cv2.EMD(sig1, sig2, cv2.DIST_L2)
     return emd_result[0]
 
@@ -122,6 +154,25 @@ def visualizeImageDistrDifferences(array1, array2):
 
     return returnArray
 
+# NOTE: This implementation is poor. i tested it with various good images and saw a lot of variation. 
+# This is here night now in case I need to test with it later and if i can improve it
+# My homemade application around analyzeImage func now (line 75)
+
+# Since areas with lots of vegetation are more likely to have things like trees and shrubbery
+# that create large areas of shade, we look at how "uneven" the ground is by using laplacian variance
+# In wild forests (What this algo is for), flat areas actually really aren't that great, so higher
+# variance means more healthy. 
+def textureAnalysis(image):
+    imageToAnalyze = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+    # Apply a blur to the image. 
+    # lo
+    blurred = cv2.GaussianBlur(imageToAnalyze, (3, 3), 0)
+    laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
+    variance = laplacian.var()
+    
+    return variance
+# Note that this is ONLY used to differentiate between good and mediocre, if we've already established that green is the most domiant color
+# because like we said, flat sprawls ARE not good, but the current HSV model has no way of finding that out.
 
 
 inputArray = analyzeImage(IMAGE_PATH)
@@ -149,10 +200,15 @@ def getResults():
     poorArray = analyzeImage(POOR_REF_PATH)
     return inputArray, goodArray, mediocreArray, poorArray
 
-# Keep your existing print/comparison logic under this guard
-# so it only runs when you execute THIS file directly, not when imported
+goodTextureBenchmark = homemadeTextureAnalysis(GOOD_REF_PATH)
+goodTextureTest = homemadeTextureAnalysis(TEXTURE_GOOD_PATH)
+badTextureTest = homemadeTextureAnalysis(TEXTURE_BAD_PATH)
+ultimateFlatBenchmark = homemadeTextureAnalysis(ULTIMATE_FLAT)
+
+print(f"Good texture distances: {compareImageDistrs(goodTextureTest, goodTextureBenchmark)}")
+print(f"Bad texture distances: {compareImageDistrs(ultimateFlatBenchmark, goodTextureBenchmark)}")
+
 if __name__ == "__main__":
     inputArray, goodArray, mediocreArray, poorArray = getResults()
     for row in inputArray:
         print(row)
-    # ... rest of your comparison code
