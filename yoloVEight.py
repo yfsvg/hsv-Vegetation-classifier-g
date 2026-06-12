@@ -5,7 +5,7 @@ from ultralytics import YOLO
 from PIL import Image
 
 MODEL_PATH = "best.pt" 
-IMAGE_PATH = "bare.png" 
+IMAGE_PATH = "textureTestBad.png" 
 
 def predict(image_path: str, model_path: str):
     model = YOLO(model_path)

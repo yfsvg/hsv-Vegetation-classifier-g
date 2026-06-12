@@ -1,14 +1,14 @@
 from hsvAlgorithm import getResults
 
-inputArray, goodArray, mediocreArray, poorArray = getResults()
+inputArray, canopyArray, lowShrubArray, patchyArray, dryArray = getResults()
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-fig, axes = plt.subplots(1, 4, figsize=(20, 4))
-labels = ["Input", "Good Ref", "Mediocre Ref", "Poor Ref"]
+fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+labels = ["Input", "Canopy ref", "Low shrub ref", "Patchy ref", "Dry ref"]
 
-for ax, arr, label in zip(axes, [inputArray, goodArray, mediocreArray, poorArray], labels):
+for ax, arr, label in zip(axes, [inputArray, canopyArray, lowShrubArray, patchyArray, dryArray], labels):
     ax.imshow(arr, cmap="hot", aspect="auto")
     ax.set_title(label)
     ax.set_xlabel("Hues")
