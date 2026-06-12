@@ -1,3 +1,5 @@
+# Purpose
+
 The purpose of this paper is to see whether or not a custom algorithm that relies purely on color images can identify vegetation health, how accurately it can do so, how resource efficient such an algorithm is, and how it compares to a YOLOv8 model specifically fine-tuned to identify and categorize these images.
 
 The way that the algorithm works is by essentially creating a color histogram of each pixel in the image, and comparing it to a list of reference images that the user categorizes themselves. The distribution that is the closest are the one that gets categorized, and the more distinctly similar the input distribution is to one of the reference distributions, the more “confident” the model is. If the user provides multiple reference images, then the reference for each category is averaged.
@@ -26,11 +28,6 @@ Distinguishing between dry and patchy can rely on how clustered together the mix
 If its more clustered then its more likely to be patchy
 
 
-Notes:
-1. Go back through all of them I marked as dry and see if I marked some that are patchy as poor
-2. Search specifically for flat images
-
-
 
 
 RULES for categories
@@ -42,3 +39,9 @@ LowShrub - Health vegetation that ISNT fully developed treetop
 Lowshrub and canopy all have UNDENIABLY majority green covers
 Patchy is if there is still some vegetation
 Dry is dominated by dirt/brown MAJORITY
+
+### Total image counts:
+Canopy: 551 
+Dry: 344
+LowShrub: 552
+Patchy: 503

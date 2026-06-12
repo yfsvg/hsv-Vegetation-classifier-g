@@ -1,9 +1,10 @@
 from PIL import Image
 import cv2
 import numpy as np
+import heapq
 
 # Image that is to be analyzed
-IMAGE_PATH = "referenceImages/INPUT2.png"
+IMAGE_PATH = "referenceImages/INPUT3.png"
 
 CANOPY_REF = "referenceImages/canopy.png"
 LOWSHRUB_REF = "referenceImages/lowShrub.png"
@@ -28,15 +29,13 @@ def valueNoise(imagePath: str) -> float:
     # We are specifically looking for value fluctuations now!
     valid_mask = (v_channel >= 1) & (v_channel <= 254)
 
-    edges = cv2.Canny(v_channel.astype(np.uint8), threshold1 = 30, threshold2 = 80)
+    edges = cv2.Canny(v_channel.astype(np.uint8), threshold1 = 20, threshold2 = 80)
 
     valid_edges = (edges > 0) & valid_mask
 
     score = valid_edges.sum() / valid_mask.sum()
 
     return float(score)
-
-
 
 def analyzeImage(imagePath: str):
     img_bgr = cv2.imread(imagePath) # OpenCV loads as BGR, not RGB
@@ -50,7 +49,7 @@ def analyzeImage(imagePath: str):
     s_flat = img_hsv[:, :, 1].flatten()[valid_mask]
     v_flat = img_hsv[:, :, 2].flatten()[valid_mask]
 
-    # matching the style of HUE_Buckets and SAT_Buckets, use those flat arrays to input the number of pixels that fit into each bucket
+    # matching the style of HUE_Buckets and SAT_Buckets, use those flat arrays to input the number of pixels that fit into each one
     # so for example, returnArray[0][0] would be hue from 0-14 and saturation from 0-24.
     # returnArray[2][3] woudl be hue from 45-59, and saturation from 50-74.
     # each row is saturation. Each column is heu
@@ -69,7 +68,7 @@ def analyzeImage(imagePath: str):
     h_indices = np.digitize(h_flat, HUE_Buckets) - 1
     s_indices = np.digitize(s_flat, SAT_Buckets) - 1
 
-    # clamp indices to valid range so bad index errors dont occur (Exactly on the border, such as h=179 -> error, will try to get index 12)
+    # clamp indices to valid range so bad index errors dont occur
     h_indices = np.clip(h_indices, 0, len(HUE_Buckets) - 1)
     s_indices = np.clip(s_indices, 0, len(SAT_Buckets) - 1)
 
@@ -152,12 +151,55 @@ def visualizeImageDistrDifferences(array1, array2):
 
     return returnArray
 
-
+# Classification plan.
+# step 1, go through each reference image and cache their results once I move to google colab
+# because we're gonna be going through a ton of images and averaging them out
+canopyArray = analyzeImage(CANOPY_REF)
+lowShrubArray = analyzeImage(LOWSHRUB_REF)
+patchyArray = analyzeImage(PATCHY_REF)
+dryArray = analyzeImage(DRY_REF)
 
 inputArray = analyzeImage(IMAGE_PATH)
 
-print(f"Good ref: {valueNoise(IMAGE_PATH)}")
-print(f"Low Shrub ref: {valueNoise(LOWSHRUB_REF)}")
+canopyNoise = valueNoise(CANOPY_REF)
+lowShrubNoise = valueNoise(LOWSHRUB_REF)
+patchyNoise = valueNoise(PATCHY_REF)
+dryNoise = valueNoise(DRY_REF)
+inputNoise = valueNoise(IMAGE_PATH)
+
+print(f"Input noise level: {inputNoise}")
+print(f"Canopy noise level: {canopyNoise}")
+print(f"Low shrub noise level: {lowShrubNoise}")
+
+refNoises = [canopyNoise, lowShrubNoise, patchyNoise, dryNoise]
+labels = ["canopy", "lowShrub", "patchy", "dry"]
+
+colorDistances = [compareImageDistrs(inputArray, canopyArray), compareImageDistrs(inputArray, lowShrubArray),
+                  compareImageDistrs(inputArray, patchyArray), compareImageDistrs(inputArray, dryArray)]
+
+noiseDistances = [abs(inputNoise - r) for r in refNoises]
+
+closestTwo = heapq.nsmallest(2, colorDistances)
+closest, second_closest = closestTwo
+confidence = (second_closest - closest) / second_closest
+
+# Noise is weighted heavier by default (BASE_NOISE_WEIGHT).
+# When color confidence is low, noise weight increases further toward 1.0.
+BASE_NOISE_WEIGHT = 0.65
+colorWeight = (1 - BASE_NOISE_WEIGHT) * confidence
+noiseWeight = 1 - colorWeight
+
+combined = [colorWeight * colorDistances[i] + noiseWeight * noiseDistances[i] for i in range(4)]
+
+bestIdx = combined.index(min(combined))
+closestTwo = heapq.nsmallest(2, combined)
+finalConfidence = (closestTwo[1] - closestTwo[0]) / closestTwo[1]
+
+print(f"{labels[bestIdx]} ({finalConfidence:.0%} confident)")
+
+
+
+
 
 # for visualization
 def getResults():
@@ -172,15 +214,4 @@ if __name__ == "__main__":
     inputArray, canopyArray, lowShrubArray, patchyArray, dryArray = getResults()
     for row in inputArray:
         print(row)
-
-
-# New plan for a proper texture analysis.
-# Keep the value as a 2D array. Blur it a TINY bit to get rid of pixel variations and only have spatial patterns.
-# run an edge detection thing to find gradient shifts, bigger gradient shifts meaning
-# Use more commonly when there is less confidence with the hue.
-
-# Total image counts:
-# Canopy: 551 
-# Dry: 344
-# LowShrub: 552
-# Patchy: 503
+        
